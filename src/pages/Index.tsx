@@ -27,7 +27,12 @@ const Index = () => {
         if (error) throw error;
 
         console.log('Fetched posts:', data);
-        setPosts(data || []);
+        // Convert the id to string before setting the state
+        const formattedPosts = (data || []).map(post => ({
+          ...post,
+          id: post.id.toString()
+        }));
+        setPosts(formattedPosts);
       } catch (error) {
         console.error('Error fetching posts:', error);
         toast.error("Failed to load posts. Please refresh the page.");
