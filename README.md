@@ -1,6 +1,9 @@
 Name: DEEKSHITHA MALEPATE
+
 Company: CODETECT IT SOLUTIONS
+
 ID: CT12WEVL
+
 Domain:  Full Stack Web Development
 
 **Overview of the Project:**
@@ -9,5 +12,8 @@ Create a frontend to display blog posts, with pages for viewing,creating, editin
 Visibility: 
 URL: https://blogpage.lovable.app/
 
-![image](https://github.com/user-attachments/assets/59bb269a-33e4-42f8-b9ea-6512dbc566ba)
+![image](https://github.com/user-attachments/assets/be034ac6-2cc6-4f37-9891-d85c3401867e)
+
+
+
 
