@@ -5,20 +5,42 @@ import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const CreatePost = () => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
     
-    // Here we would normally save to a backend
-    console.log("Saving post:", { title, content });
-    
-    toast.success("Post created successfully!");
-    navigate("/");
+    try {
+      const { data, error } = await supabase
+        .from('blogspace')
+        .insert([
+          { 
+            title, 
+            description: content,
+            likes: 0
+          }
+        ])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      console.log('Post created successfully:', data);
+      toast.success("Post created successfully!");
+      navigate("/");
+    } catch (error) {
+      console.error('Error creating post:', error);
+      toast.error("Failed to create post. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -54,11 +76,18 @@ const CreatePost = () => {
               />
             </div>
             <div className="flex justify-end gap-4">
-              <Button type="button" variant="outline" onClick={() => navigate("/")}>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => navigate("/")}
+              >
                 Cancel
               </Button>
-              <Button type="submit">
-                Publish Post
+              <Button 
+                type="submit"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Publishing..." : "Publish Post"}
               </Button>
             </div>
           </form>

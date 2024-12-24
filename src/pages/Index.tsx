@@ -1,44 +1,69 @@
 import { BlogHeader } from "@/components/BlogHeader";
 import { BlogCard } from "@/components/BlogCard";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
-// Temporary mock data
-const MOCK_POSTS = [
-  {
-    id: "1",
-    title: "Getting Started with React and TypeScript",
-    excerpt: "Learn how to set up a new React project with TypeScript and understand the basics of type-safe component development.",
-    author: "Sarah Johnson",
-    date: "Mar 15, 2024",
-    likes: 42
-  },
-  {
-    id: "2",
-    title: "The Future of Web Development: What to Expect in 2024",
-    excerpt: "Explore the upcoming trends and technologies that will shape the web development landscape in 2024 and beyond.",
-    author: "Michael Chen",
-    date: "Mar 14, 2024",
-    likes: 38
-  },
-  {
-    id: "3",
-    title: "Building Responsive Layouts with Tailwind CSS",
-    excerpt: "A comprehensive guide to creating beautiful, responsive layouts using Tailwind CSS utility classes.",
-    author: "Emma Wilson",
-    date: "Mar 13, 2024",
-    likes: 55
-  }
-];
+interface Post {
+  id: string;
+  title: string;
+  description: string;
+  created_at: string;
+  likes: number;
+}
 
 const Index = () => {
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('blogspace')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        console.log('Fetched posts:', data);
+        setPosts(data || []);
+      } catch (error) {
+        console.error('Error fetching posts:', error);
+        toast.error("Failed to load posts. Please refresh the page.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchPosts();
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <BlogHeader />
       <main className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {MOCK_POSTS.map((post) => (
-            <BlogCard key={post.id} {...post} />
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="text-center">Loading posts...</div>
+        ) : posts.length === 0 ? (
+          <div className="text-center text-gray-500">
+            No posts yet. Be the first to create one!
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {posts.map((post) => (
+              <BlogCard
+                key={post.id}
+                id={post.id}
+                title={post.title || "Untitled"}
+                excerpt={post.description || "No content"}
+                author="Anonymous" // We can add user authentication later
+                date={new Date(post.created_at).toLocaleDateString()}
+                likes={post.likes || 0}
+              />
+            ))}
+          </div>
+        )}
       </main>
     </div>
   );
