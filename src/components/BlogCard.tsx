@@ -1,8 +1,10 @@
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Heart, Bookmark } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface BlogCardProps {
   id: string;
@@ -13,10 +15,32 @@ interface BlogCardProps {
   likes: number;
 }
 
-export const BlogCard = ({ id, title, excerpt, author, date, likes }: BlogCardProps) => {
+export const BlogCard = ({ id, title, excerpt, author, date, likes: initialLikes }: BlogCardProps) => {
   const [isLiked, setIsLiked] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
+  const [likeCount, setLikeCount] = useState(initialLikes);
   const navigate = useNavigate();
+
+  const handleLike = async () => {
+    try {
+      const newLikeCount = isLiked ? likeCount - 1 : likeCount + 1;
+      
+      const { error } = await supabase
+        .from('blogspace')
+        .update({ likes: newLikeCount })
+        .eq('id', parseInt(id));
+
+      if (error) throw error;
+
+      setLikeCount(newLikeCount);
+      setIsLiked(!isLiked);
+      
+      console.log('Like count updated:', newLikeCount);
+    } catch (error) {
+      console.error('Error updating like count:', error);
+      toast.error("Failed to update like count");
+    }
+  };
 
   return (
     <Card className="h-full hover:shadow-lg transition-shadow duration-200">
@@ -39,10 +63,10 @@ export const BlogCard = ({ id, title, excerpt, author, date, likes }: BlogCardPr
           variant="ghost"
           size="sm"
           className={`gap-2 ${isLiked ? 'text-red-500' : ''}`}
-          onClick={() => setIsLiked(!isLiked)}
+          onClick={handleLike}
         >
           <Heart className={`h-4 w-4 ${isLiked ? 'fill-current' : ''}`} />
-          <span>{likes + (isLiked ? 1 : 0)}</span>
+          <span>{likeCount}</span>
         </Button>
         <Button
           variant="ghost"
